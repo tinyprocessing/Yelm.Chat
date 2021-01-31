@@ -16,9 +16,13 @@ public class Core: ObservableObject, Identifiable {
     public var id: Int = 0
     
     
+    
+    public func send(message: messages_structure){
+        
+    }
+    
     public func server(host: String){
        
-    
     }
     
     public func register(completionHandlerRegister: @escaping (_ success:Bool) -> Void){

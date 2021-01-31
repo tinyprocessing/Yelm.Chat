@@ -15,7 +15,9 @@ import SocketIO
 public class Core: ObservableObject, Identifiable {
     public var id: Int = 0
     
-    
+    public func get(){
+        
+    }
     
     public func send(message: messages_structure){
         

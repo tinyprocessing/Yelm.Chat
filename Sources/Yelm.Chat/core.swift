@@ -17,13 +17,8 @@ public class Core: ObservableObject, Identifiable {
     
     
     public func server(host: String){
-        
-        let e : Echo = Echo(options: ["host": host, "auth": ["headers": ["Authorization": "Bearer " + YelmChat.settings.chat.api_token]]])
-
-        e.connected(){ data, ack in
-           
-        }
-     
+       
+    
     }
     
     public func register(completionHandlerRegister: @escaping (_ success:Bool) -> Void){
@@ -50,7 +45,7 @@ public class Core: ObservableObject, Identifiable {
 
             }else{
                 if (YelmChat.settings.debug){
-                    print(response.value)
+                    print(response.value!)
                 }
             }
         }

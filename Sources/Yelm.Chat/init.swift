@@ -10,13 +10,13 @@ import Foundation
 
 
 
-public let YelmChat: ChatIO = ChatIO()
+public var YelmChat: ChatIO = ChatIO()
 
-open class ChatIO: ObservableObject, Identifiable {
+public class ChatIO: ObservableObject, Identifiable {
     public var id: Int = 0
-    public var settings : Settings =  Settings()
-    public var core : Core =  Core()
-    
+    @Published public var settings : Settings =  Settings()
+    @Published public var core : Core =  Core()
+    @Published public var chat : ChatEngine = ChatEngine()
     
     
     public func start(platform : String, user: String,  completionHandlerStart: @escaping (_ success:Bool) -> Void){

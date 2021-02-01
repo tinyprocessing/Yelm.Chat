@@ -15,6 +15,11 @@ import SocketIO
 public class Core: ObservableObject, Identifiable {
     public var id: Int = 0
     
+    var manager : SocketManager?
+    var socket : SocketIOClient!
+    
+    @Published public var socket_state : Bool = false
+    
     public func get(){
         
     }
@@ -25,6 +30,56 @@ public class Core: ObservableObject, Identifiable {
     
     public func server(host: String){
        
+        manager = SocketManager(socketURL: URL(string: host)!,
+                                    config: [.log(true),
+                                             .forceNew(true),
+                                             .connectParams(["token" : YelmChat.settings.chat.api_token, "room" : YelmChat.settings.chat.room_id])
+                                             ])
+        self.socket = self.manager!.defaultSocket
+        
+        self.socket.on(clientEvent: .connect) {data, ack in
+            print("connected")
+        }
+        
+        self.socket.on("MessageEvent") { (data, emitter) in
+            print(data)
+            print(emitter)
+            print("MessageEvent")
+        }
+        
+        self.socket.on(clientEvent: .reconnect) { (data, ack) in
+            print("reconnect...")
+        }
+        
+        self.socket.on(clientEvent: .error) { (data, ack) in
+            print("error_socket")
+            print(data)
+        }
+        
+        self.socket.on(clientEvent: .statusChange) { (data, emit) in
+            if (self.socket.status == .connected){
+                self.socket_state = true
+            }
+            
+            if (self.socket.status == .disconnected){
+                self.socket_state = false
+            }
+            
+            if (self.socket.status == .notConnected){
+                self.socket_state = false
+            }
+            
+            if (self.socket.status == .connected){
+                self.socket_state = false
+            }
+        }
+        
+        self.socket.on(clientEvent: .disconnect) { (data, ack) in
+            print("dis_connected")
+        }
+        
+        self.socket.connect()
+
     }
     
     public func register(completionHandlerRegister: @escaping (_ success:Bool) -> Void){

@@ -20,7 +20,7 @@ let package = Package(
         .package(url: "https://github.com/Alamofire/Alamofire.git", .upToNextMajor(from: "5.2.0")),
         .package(url: "https://github.com/SwiftyJSON/SwiftyJSON.git", from: "4.0.0"),
         .package(url: "https://github.com/devicekit/DeviceKit.git", from: "4.0.0"),
-        .package(name: "SocketIO", url: "https://github.com/socketio/socket.io-client-swift.git", .upToNextMinor(from: "15.0.0")),
+        .package(name: "SocketIO", url: "https://github.com/socketio/socket.io-client-swift.git", .upToNextMinor(from: "15.2.0")),
         .package(name: "Realm", url: "https://github.com/realm/realm-cocoa.git", from: "10.5.0")
     ],
     targets: [

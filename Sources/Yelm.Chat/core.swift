@@ -24,16 +24,15 @@ public class Core: ObservableObject, Identifiable {
         
     }
     
-    public func send(message: messages_structure){
-        
-    }
+   
     
     public func server(host: String){
        
         manager = SocketManager(socketURL: URL(string: host)!,
                                     config: [.log(true),
                                              .forceNew(true),
-                                             .connectParams(["token" : YelmChat.settings.chat.api_token, "room" : YelmChat.settings.chat.room_id])
+                                             .connectParams(["token" : YelmChat.settings.chat.api_token, "room_id" : YelmChat.settings.chat.room_id]),
+                                             .reconnectWait(1)
                                              ])
         self.socket = self.manager!.defaultSocket
         
@@ -41,37 +40,55 @@ public class Core: ObservableObject, Identifiable {
             print("connected")
         }
         
-        self.socket.on("MessageEvent") { (data, emitter) in
+      
+        self.socket.on("room.\(YelmChat.settings.chat.room_id)") { (data, emitter) in
             print(data)
             print(emitter)
-            print("MessageEvent")
+            print("room.\(YelmChat.settings.chat.room_id)")
+            
         }
         
         self.socket.on(clientEvent: .reconnect) { (data, ack) in
-            print("reconnect...")
+            YelmChat.objectWillChange.send()
+            self.socket_state = true
         }
         
         self.socket.on(clientEvent: .error) { (data, ack) in
             print("error_socket")
-            print(data)
+            
+            YelmChat.objectWillChange.send()
+            self.socket_state = false
+            
+            
         }
         
         self.socket.on(clientEvent: .statusChange) { (data, emit) in
+            
             if (self.socket.status == .connected){
+                YelmChat.objectWillChange.send()
                 self.socket_state = true
+                
             }
-            
+
             if (self.socket.status == .disconnected){
+                YelmChat.objectWillChange.send()
                 self.socket_state = false
+                
             }
-            
+
             if (self.socket.status == .notConnected){
+                YelmChat.objectWillChange.send()
                 self.socket_state = false
+                
+            }
+
+            if (self.socket.status == .connecting){
+                YelmChat.objectWillChange.send()
+                self.socket_state = false
+                
             }
             
-            if (self.socket.status == .connected){
-                self.socket_state = false
-            }
+            
         }
         
         self.socket.on(clientEvent: .disconnect) { (data, ack) in
@@ -105,7 +122,7 @@ public class Core: ObservableObject, Identifiable {
                 }
 
             }else{
-                if (YelmChat.settings.debug){
+                if (YelmChat.settings.debug && YelmChat.settings.internet()){
                     print(response.value!)
                 }
             }

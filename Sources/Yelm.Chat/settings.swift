@@ -20,8 +20,8 @@ public class Chat: ObservableObject, Identifiable {
     
     public var api_token : String = ""
     public var room_id : Int = 0
-    public var from_whom : Int = 0
-    public var to_whom : Int = 0
+    public var client : Int = 0
+    public var shop : Int = 0
 }
 
 public class Settings: ObservableObject, Identifiable {

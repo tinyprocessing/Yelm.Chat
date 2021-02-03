@@ -29,7 +29,7 @@ public class Core: ObservableObject, Identifiable {
     public func server(host: String){
        
         manager = SocketManager(socketURL: URL(string: host)!,
-                                    config: [.log(true),
+                                    config: [.log(false),
                                              .forceNew(true),
                                              .connectParams(["token" : YelmChat.settings.chat.api_token, "room_id" : YelmChat.settings.chat.room_id]),
                                              .reconnectWait(1)
@@ -38,6 +38,10 @@ public class Core: ObservableObject, Identifiable {
         
         self.socket.on(clientEvent: .connect) {data, ack in
             print("connected")
+            DispatchQueue.main.async {
+                YelmChat.objectWillChange.send()
+                self.socket_state = true
+            }
         }
         
       
@@ -49,15 +53,19 @@ public class Core: ObservableObject, Identifiable {
         }
         
         self.socket.on(clientEvent: .reconnect) { (data, ack) in
-            YelmChat.objectWillChange.send()
-            self.socket_state = true
+            DispatchQueue.main.async {
+                YelmChat.objectWillChange.send()
+                self.socket_state = true
+            }
         }
         
         self.socket.on(clientEvent: .error) { (data, ack) in
             print("error_socket")
             
-            YelmChat.objectWillChange.send()
-            self.socket_state = false
+            DispatchQueue.main.async {
+                YelmChat.objectWillChange.send()
+                self.socket_state = false
+            }
             
             
         }
@@ -65,26 +73,32 @@ public class Core: ObservableObject, Identifiable {
         self.socket.on(clientEvent: .statusChange) { (data, emit) in
             
             if (self.socket.status == .connected){
-                YelmChat.objectWillChange.send()
-                self.socket_state = true
+                DispatchQueue.main.async {
+                    YelmChat.objectWillChange.send()
+                    self.socket_state = true
+                }
                 
             }
 
             if (self.socket.status == .disconnected){
-                YelmChat.objectWillChange.send()
-                self.socket_state = false
-                
+                DispatchQueue.main.async {
+                    YelmChat.objectWillChange.send()
+                    self.socket_state = false
+                }
             }
-
+  
             if (self.socket.status == .notConnected){
-                YelmChat.objectWillChange.send()
-                self.socket_state = false
-                
+                DispatchQueue.main.async {
+                    YelmChat.objectWillChange.send()
+                    self.socket_state = false
+                }
             }
 
             if (self.socket.status == .connecting){
-                YelmChat.objectWillChange.send()
-                self.socket_state = false
+                DispatchQueue.main.async {
+                    YelmChat.objectWillChange.send()
+                    self.socket_state = false
+                }
                 
             }
             
@@ -99,8 +113,52 @@ public class Core: ObservableObject, Identifiable {
 
     }
     
+    public func send(message: String, type: String){
+        var json : [String : Any] = [:]
+        
+        switch type {
+        case "images":
+            
+            var json_images : JSON = []
+            let json_image : JSON = [
+                "image" : message
+            ]
+            json_images.arrayObject?.append(json_image)
+            
+            
+            json = [
+                "room_id" : YelmChat.settings.chat.room_id,
+                "message" : "",
+                "type" : type,
+                "platform" : YelmChat.settings.platform,
+                "from_whom" : YelmChat.settings.chat.client,
+                "to_whom" : YelmChat.settings.chat.shop,
+                "images" : json_images.rawString()
+                ]
+            
+            self.socket.emit("room.\(YelmChat.settings.chat.room_id)", json)
+            break
+        case "text":
+            json = [
+                "room_id" : YelmChat.settings.chat.room_id,
+                "message" : message,
+                "type" : "message",
+                "platform" : YelmChat.settings.platform,
+                "from_whom" : YelmChat.settings.chat.client,
+                "to_whom" : YelmChat.settings.chat.shop
+                ]
+            
+            self.socket.emit("room.\(YelmChat.settings.chat.room_id)", json)
+            
+            break
+        default: break
+            
+        }
+    }
+    
     public func register(completionHandlerRegister: @escaping (_ success:Bool) -> Void){
         
+        print(YelmChat.settings.url(method: "chat", dev: true))
         AF.request(YelmChat.settings.url(method: "chat", dev: true), method: .post).responseJSON { (response) in
       
             if (response.value != nil && response.response?.statusCode == 200) {
@@ -113,8 +171,9 @@ public class Core: ObservableObject, Identifiable {
                 
                 YelmChat.settings.chat.api_token = json["api_token"].string!
                 YelmChat.settings.chat.room_id = json["room_id"].int!
-                YelmChat.settings.chat.from_whom = json["from_whom"].int!
-                YelmChat.settings.chat.to_whom = json["to_whom"].int!
+                YelmChat.settings.chat.shop = json["shop"].int!
+                YelmChat.settings.chat.client = json["client"].int!
+               
     
     
                 DispatchQueue.main.async {

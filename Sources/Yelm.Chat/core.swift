@@ -24,7 +24,71 @@ public class Core: ObservableObject, Identifiable {
     
     public func get(){
         
-        
+        AF.request("https://chat.yelm.io/message/all?platform=\(YelmChat.settings.platform)&room_id=\(YelmChat.settings.chat.room_id)", method: .get).responseJSON { (response) in
+            
+            YelmChat.objectWillChange.send()
+            YelmChat.chat.messages.removeAll()
+            YelmChat.chat.messages.append(chat_message(id: 0))
+            
+            if (response.value != nil && response.response?.statusCode == 200) {
+                
+                let json = JSON(response.value!)
+                
+                if (YelmChat.settings.debug){
+                    print(json)
+                }
+                
+                if (json.count > 0){
+                    for i in 0...json.count-1{
+                        let message_json = json[i]
+                        
+                        if (message_json["type"].string! == "message"){
+                            
+                            var username : String = "shop"
+                            if (YelmChat.settings.chat.client == message_json["from_whom"].int!){
+                                username = YelmChat.settings.user
+                            }
+                            
+                            YelmChat.objectWillChange.send()
+                            YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
+                                                                       user: chat_user(id: 0, name: username),
+                                                                       text: message_json["message"].string!,
+                                                                       time: self.get_time(date_time: message_json["created_at"].string!).1,
+                                                                       date: self.get_time(date_time: message_json["created_at"].string!).0,
+                                                                       attachments: [:]))
+                            
+                        }
+                        
+                        if (message_json["type"].string! == "images"){
+                            
+                            var username : String = "shop"
+                            if (YelmChat.settings.chat.client == message_json["from_whom"].int!){
+                                username = YelmChat.settings.user
+                            }
+                            
+                            let json_image = message_json["images"][0].string!
+                            
+                            
+                            YelmChat.objectWillChange.send()
+                            YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
+                                                                       user: chat_user(id: 0, name: username),
+                                                                       text: "",
+                                                                       time: self.get_time(date_time: message_json["created_at"].string!).1,
+                                                                       date: self.get_time(date_time: message_json["created_at"].string!).0,
+                                                                       attachments: ["image" : json_image]))
+                        }
+                        
+                    }
+                }
+                
+                
+            }else{
+                if (YelmChat.settings.debug && YelmChat.settings.internet()){
+                    print(response.value!)
+                }
+            }
+        }
+
     }
     
     func get_time(date_time: String, divider : Character = Character(":")) -> (String, String){

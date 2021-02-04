@@ -14,22 +14,43 @@ public class ChatEngine: ObservableObject, Identifiable{
     public var id: Int = 0
     @Published public var keyboard: CGFloat = 0
     @Published public var messages : [chat_message] = []
+    @Published public var keyboard_metric: Int = 0
     
     
     init() {
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(keyboard_show),
+            selector: #selector(keyboard_will_show),
             name: UIResponder.keyboardWillShowNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(keyboard_hide),
+            name: UIResponder.keyboardDidHideNotification,
             object: nil
         )
     }
 
-    @objc func keyboard_show(_ notification: Notification) {
+    @objc func keyboard_will_show(_ notification: Notification) {
         if let frame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let rect = frame.cgRectValue
+            
+            YelmChat.objectWillChange.send()
             keyboard = rect.height
+            print("будет показана")
         }
+    }
+    
+    @objc func keyboard_show(_ notification: Notification) {
+        YelmChat.objectWillChange.send()
+        self.keyboard_metric = 30
+    }
+    
+    @objc func keyboard_hide(_ notification: Notification) {
+        YelmChat.objectWillChange.send()
+        self.keyboard_metric = 15
     }
     
 }

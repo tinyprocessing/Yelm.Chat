@@ -30,7 +30,7 @@ public class Settings: ObservableObject, Identifiable {
     
     public var id: Int = 0
     public var platform : String = ""
-    public var debug : Bool = true
+    public var debug : Bool = false
     public var position : String = ""
     public var user : String = ""
     public var chat : Chat =  Chat()

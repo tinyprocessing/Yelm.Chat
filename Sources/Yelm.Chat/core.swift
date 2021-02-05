@@ -11,7 +11,7 @@ import SwiftyJSON
 import Combine
 import SwiftUI
 import SocketIO
-
+import Yelm_Server
 
 
 public class Core: ObservableObject, Identifiable {
@@ -23,6 +23,8 @@ public class Core: ObservableObject, Identifiable {
     @Published public var socket_state : Bool = false
     
     public func get(){
+        
+        
         
         AF.request("https://chat.yelm.io/message/all?platform=\(YelmChat.settings.platform)&room_id=\(YelmChat.settings.chat.room_id)", method: .get).responseJSON { (response) in
             
@@ -48,7 +50,7 @@ public class Core: ObservableObject, Identifiable {
                             if (YelmChat.settings.chat.client == message_json["from_whom"].int!){
                                 username = YelmChat.settings.user
                             }
-                            
+
                             YelmChat.objectWillChange.send()
                             YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
                                                                        user: chat_user(id: 0, name: username),
@@ -56,6 +58,88 @@ public class Core: ObservableObject, Identifiable {
                                                                        time: self.get_time(date_time: message_json["created_at"].string!).1,
                                                                        date: self.get_time(date_time: message_json["created_at"].string!).0,
                                                                        attachments: [:]))
+                            
+                            
+                        }
+                        
+                        print(message_json)
+                        if (message_json["type"].string! == "order"){
+                            
+                            var username : String = "shop"
+                            if (YelmChat.settings.chat.client == message_json["from_whom"].int!){
+                                username = YelmChat.settings.user
+                            }
+
+                            YelmChat.objectWillChange.send()
+                            YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
+                                                                       user: chat_user(id: 0, name: username),
+                                                                       text: message_json["message"].string!,
+                                                                       time: self.get_time(date_time: message_json["created_at"].string!).1,
+                                                                       date: self.get_time(date_time: message_json["created_at"].string!).0,
+                                                                       attachments: ["order": "true"]))
+                            
+                        }
+                        
+                        
+                        if (message_json["type"].string! == "items"){
+                            
+                            var username : String = "shop"
+                            if (YelmChat.settings.chat.client == message_json["from_whom"].int!){
+                                username = YelmChat.settings.user
+                            }
+                            
+                            let item_AF = message_json["items"]
+                            
+                            let price_AF = Float(item_AF["discount"].int!) / 100
+                            let discount_AF = item_AF["price"].float! * price_AF
+                            let discount_final = item_AF["price"].float! - discount_AF
+                            let final = discount_final
+                            
+                            let parameter_AF = item_AF["specification"]
+                            var parameters : [parameters_structure] = []
+                            
+                            if (parameter_AF.count > 0){
+                                for k in 0...parameter_AF.count - 1 {
+                                    let parameter_single = parameter_AF[k]
+                                    let name = parameter_single["name"].string!
+                                    let value = parameter_single["value"].string!
+                                    parameters.append(parameters_structure(id: item_AF["id"].int!, name: name, value: value))
+                                }
+                            }
+                            
+                            var images : [String] = []
+                            for k in 0...item_AF["images"].count-1{
+                                images.append(item_AF["images"][k].string!)
+                            }
+                            
+                            let structure_ready = items_structure(id: item_AF["id"].int!,
+                                                                  title: item_AF["name"].string!,
+                                                                  price: String(format:"%.2f", item_AF["price"].float!),
+                                                                  text: item_AF["description"].string!,
+                                                                  thubnail: item_AF["preview_image"].string!,
+                                                                  price_float: item_AF["price"].float!,
+                                                                  all_images: images,
+                                                                  parameters: parameters,
+                                                                  type: item_AF["type"].string!,
+                                                                  quanity: "\(item_AF["unit_type"].int!)",
+                                                                  discount: String(format:"%.2f", final),
+                                                                  discount_value: item_AF["discount"].int!,
+                                                                  discount_present: "-\(item_AF["discount"].int!)%",
+                                                                  rating: item_AF["rating"].int!,
+                                                                  amount: item_AF["quantity"].int!)
+                            
+                            print("your struct sir")
+                            print(structure_ready)
+                            YelmChat.objectWillChange.send()  
+                            YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
+                                                                       user: chat_user(id: 0, name: username),
+                                                                       text: "",
+                                                                       time: self.get_time(date_time: message_json["created_at"].string!).1,
+                                                                       date: self.get_time(date_time: message_json["created_at"].string!).0,
+                                                                       attachments: ["item" : "true"],
+                                                                       item: structure_ready))
+                            
+                            
                             
                         }
                         
@@ -136,6 +220,10 @@ public class Core: ObservableObject, Identifiable {
                 return
             }
             
+            if (json[0]["type"].string! == "items"){
+                print(json)
+            }
+            
             if (json[0]["type"].string! == "message"){
                 
                 var username : String = "shop"
@@ -143,13 +231,17 @@ public class Core: ObservableObject, Identifiable {
                     username = YelmChat.settings.user
                 }
                 
-                YelmChat.objectWillChange.send()
-                YelmChat.chat.messages.append(chat_message(id: json[0]["id"].int!,
-                                                           user: chat_user(id: 0, name: username),
-                                                           text: json[0]["message"].string!,
-                                                           time: self.get_time(date_time: json[0]["created_at"].string!).1,
-                                                           date: self.get_time(date_time: json[0]["created_at"].string!).0,
-                                                           attachments: [:]))
+               
+                
+                    YelmChat.objectWillChange.send()
+                    YelmChat.chat.messages.append(chat_message(id: json[0]["id"].int!,
+                                                               user: chat_user(id: 0, name: username),
+                                                               text: json[0]["message"].string!,
+                                                               time: self.get_time(date_time: json[0]["created_at"].string!).1,
+                                                               date: self.get_time(date_time: json[0]["created_at"].string!).0,
+                                                               attachments: [:]))
+                
+              
                 
             }
             
@@ -173,6 +265,66 @@ public class Core: ObservableObject, Identifiable {
             }
             
             
+            if (json[0]["type"].string! == "items"){
+                
+                var username : String = "shop"
+                if (YelmChat.settings.chat.client == json[0]["from_whom"].int!){
+                    username = YelmChat.settings.user
+                }
+                
+                let item_AF = json[0]["items"]
+                
+                let price_AF = Float(item_AF["discount"].int!) / 100
+                let discount_AF = item_AF["price"].float! * price_AF
+                let discount_final = item_AF["price"].float! - discount_AF
+                let final = discount_final
+                
+                let parameter_AF = item_AF["specification"]
+                var parameters : [parameters_structure] = []
+                
+                if (parameter_AF.count > 0){
+                    for k in 0...parameter_AF.count - 1 {
+                        let parameter_single = parameter_AF[k]
+                        let name = parameter_single["name"].string!
+                        let value = parameter_single["value"].string!
+                        parameters.append(parameters_structure(id: item_AF["id"].int!, name: name, value: value))
+                    }
+                }
+                
+                var images : [String] = []
+                for k in 0...item_AF["images"].count-1{
+                    images.append(item_AF["images"][k].string!)
+                }
+                
+                let structure_ready = items_structure(id: item_AF["id"].int!,
+                                                      title: item_AF["name"].string!,
+                                                      price: String(format:"%.2f", item_AF["price"].float!),
+                                                      text: item_AF["description"].string!,
+                                                      thubnail: item_AF["preview_image"].string!,
+                                                      price_float: item_AF["price"].float!,
+                                                      all_images: images,
+                                                      parameters: parameters,
+                                                      type: item_AF["type"].string!,
+                                                      quanity: "\(item_AF["unit_type"].int!)",
+                                                      discount: String(format:"%.2f", final),
+                                                      discount_value: item_AF["discount"].int!,
+                                                      discount_present: "-\(item_AF["discount"].int!)%",
+                                                      rating: item_AF["rating"].int!,
+                                                      amount: item_AF["quantity"].int!)
+                
+                
+                YelmChat.objectWillChange.send()
+                YelmChat.chat.messages.append(chat_message(id: json[0]["id"].int!,
+                                                           user: chat_user(id: 0, name: username),
+                                                           text: "",
+                                                           time: self.get_time(date_time: json[0]["created_at"].string!).1,
+                                                           date: self.get_time(date_time: json[0]["created_at"].string!).0,
+                                                           attachments: ["item" : "true"],
+                                                           item: structure_ready))
+                
+                
+                
+            }
             
             
         }
@@ -268,6 +420,19 @@ public class Core: ObservableObject, Identifiable {
                 "room_id" : YelmChat.settings.chat.room_id,
                 "message" : message,
                 "type" : "message",
+                "platform" : YelmChat.settings.platform,
+                "from_whom" : YelmChat.settings.chat.client,
+                "to_whom" : YelmChat.settings.chat.shop
+            ]
+            
+            self.socket.emit("room.\(YelmChat.settings.chat.room_id)", json)
+            
+            break
+        case "basket":
+            json = [
+                "room_id" : YelmChat.settings.chat.room_id,
+                "message" : message,
+                "type" : "basket",
                 "platform" : YelmChat.settings.platform,
                 "from_whom" : YelmChat.settings.chat.client,
                 "to_whom" : YelmChat.settings.chat.shop

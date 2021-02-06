@@ -26,7 +26,7 @@ public class Core: ObservableObject, Identifiable {
         
         
         
-        AF.request("https://chat.yelm.io/message/all?platform=\(YelmChat.settings.platform)&room_id=\(YelmChat.settings.chat.room_id)", method: .get).responseJSON { (response) in
+        AF.request("https://chat.yelm.io/api/message/all?platform=\(YelmChat.settings.platform)&room_id=\(YelmChat.settings.chat.room_id)", method: .get).responseJSON { (response) in
             
             YelmChat.objectWillChange.send()
             YelmChat.chat.messages.removeAll()
@@ -39,6 +39,7 @@ public class Core: ObservableObject, Identifiable {
                 if (YelmChat.settings.debug){
                     print(json)
                 }
+                
                 
                 if (json.count > 0){
                     for i in 0...json.count-1{
@@ -62,7 +63,7 @@ public class Core: ObservableObject, Identifiable {
                             
                         }
                         
-                        print(message_json)
+                        
                         if (message_json["type"].string! == "order"){
                             
                             var username : String = "shop"
@@ -128,9 +129,9 @@ public class Core: ObservableObject, Identifiable {
                                                                   rating: item_AF["rating"].int!,
                                                                   amount: item_AF["quantity"].int!)
                             
-                            print("your struct sir")
-                            print(structure_ready)
-                            YelmChat.objectWillChange.send()  
+                        
+                            YelmChat.objectWillChange.send()
+                            print(message_json)
                             YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
                                                                        user: chat_user(id: 0, name: username),
                                                                        text: "",
@@ -214,17 +215,14 @@ public class Core: ObservableObject, Identifiable {
         self.socket.on("room.\(YelmChat.settings.chat.room_id)") { [self] (data, emitter) in
             
             let json = JSON(data)
-            
+          
             
             if (json[0]["type"].string! == "connected"){
                 return
             }
-            
-            if (json[0]["type"].string! == "items"){
-                print(json)
-            }
-            
+          
             if (json[0]["type"].string! == "message"){
+                
                 
                 var username : String = "shop"
                 if (YelmChat.settings.chat.client == json[0]["from_whom"].int!){
@@ -410,7 +408,9 @@ public class Core: ObservableObject, Identifiable {
                 "platform" : YelmChat.settings.platform,
                 "from_whom" : YelmChat.settings.chat.client,
                 "to_whom" : YelmChat.settings.chat.shop,
-                "images" : json_images.rawString()
+                "images" : json_images.rawString(),
+                "items" : "{}"
+                
             ]
             
             self.socket.emit("room.\(YelmChat.settings.chat.room_id)", json)
@@ -422,7 +422,9 @@ public class Core: ObservableObject, Identifiable {
                 "type" : "message",
                 "platform" : YelmChat.settings.platform,
                 "from_whom" : YelmChat.settings.chat.client,
-                "to_whom" : YelmChat.settings.chat.shop
+                "to_whom" : YelmChat.settings.chat.shop,
+                "items" : "{}",
+                "images" : "[]"
             ]
             
             self.socket.emit("room.\(YelmChat.settings.chat.room_id)", json)
@@ -435,7 +437,9 @@ public class Core: ObservableObject, Identifiable {
                 "type" : "basket",
                 "platform" : YelmChat.settings.platform,
                 "from_whom" : YelmChat.settings.chat.client,
-                "to_whom" : YelmChat.settings.chat.shop
+                "to_whom" : YelmChat.settings.chat.shop,
+                "items" : "{}",
+                "images" : "[]"
             ]
             
             self.socket.emit("room.\(YelmChat.settings.chat.room_id)", json)

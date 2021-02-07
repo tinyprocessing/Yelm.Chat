@@ -131,7 +131,7 @@ public class Core: ObservableObject, Identifiable {
                             
                         
                             YelmChat.objectWillChange.send()
-                            print(message_json)
+                            print(structure_ready)
                             YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
                                                                        user: chat_user(id: 0, name: username),
                                                                        text: "",

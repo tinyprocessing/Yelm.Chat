@@ -71,8 +71,8 @@ public class Core: ObservableObject, Identifiable {
                                 username = YelmChat.settings.user
                             }
 
-                            let item = message_json["items"]
-                            let id_order = item["id"]
+                            
+                            let id_order = message_json["order_id"].int!
                             
                             
                             

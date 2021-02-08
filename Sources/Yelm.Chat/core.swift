@@ -71,13 +71,18 @@ public class Core: ObservableObject, Identifiable {
                                 username = YelmChat.settings.user
                             }
 
+                            let item = message_json["items"]
+                            let id_order = item["id"]
+                            
+                            
+                            
                             YelmChat.objectWillChange.send()
                             YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
                                                                        user: chat_user(id: 0, name: username),
                                                                        text: message_json["message"].string!,
                                                                        time: self.get_time(date_time: message_json["created_at"].string!).1,
                                                                        date: self.get_time(date_time: message_json["created_at"].string!).0,
-                                                                       attachments: ["order": "true"]))
+                                                                       attachments: ["order": "true", "id" : "\(id_order)"]))
                             
                         }
                         
@@ -131,7 +136,7 @@ public class Core: ObservableObject, Identifiable {
                             
                         
                             YelmChat.objectWillChange.send()
-                            print(structure_ready)
+                            
                             YelmChat.chat.messages.append(chat_message(id: message_json["id"].int!,
                                                                        user: chat_user(id: 0, name: username),
                                                                        text: "",

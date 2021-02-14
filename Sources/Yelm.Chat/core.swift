@@ -190,7 +190,7 @@ public class Core: ObservableObject, Identifiable {
         var real_time : String = String(time_split[1])
         real_time = real_time.split(separator: divider)[0] + ":" + real_time.split(separator: divider)[1]
         
-        
+
         return (date, real_time)
         
     }

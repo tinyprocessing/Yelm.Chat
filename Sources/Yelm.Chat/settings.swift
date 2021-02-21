@@ -25,8 +25,12 @@ public class Chat: ObservableObject, Identifiable {
 }
 
 public class Settings: ObservableObject, Identifiable {
-    var domain : String = "https://rest.yelm.io/api/"
+    var domain : String = "https://rest.yelm.io/api/mobile/"
     var domain_beta : String = "https://dev.yelm.io/api/mobile/"
+    
+    
+    private var develope : Bool = false
+
     
     public var id: Int = 0
     public var platform : String = ""
@@ -43,7 +47,7 @@ public class Settings: ObservableObject, Identifiable {
         var url : String = ""
         if (Locale.current.regionCode != nil && Locale.current.languageCode != nil){
             
-            if (dev == false){
+            if (self.develope == false){
                 url = self.domain
             }else{
                 url = self.domain_beta
@@ -62,7 +66,7 @@ public class Settings: ObservableObject, Identifiable {
             
         }else{
 
-            if (dev == false){
+            if (self.develope == false){
                 url = self.domain
             }else{
                 url = self.domain_beta

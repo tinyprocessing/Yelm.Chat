@@ -1,6 +1,8 @@
 # Yelm.Chat
  Chat SDK 
 
+Start Chat.Core - register with platform from Yelm.Server wiki and put user_id 
+
 ```swift
     YelmChat.start(platform: platform, user: user) {
       (load) in

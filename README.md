@@ -33,3 +33,18 @@ Get new maeesages - you need to collect messages when come back to app from noti
 ```swift
 YelmChat.core.get()
 ```
+
+All messages structure
+
+```swift
+
+public var id: Int
+public var user: chat_user = chat_user(id: 0)
+public var text: String = ""
+public var time: String = ""
+public var date: String = ""
+public var attachments : [String : String] = [:]
+public var asset : PHAsset? = nil
+public var item : items_structure = items_structure()
+    
+```

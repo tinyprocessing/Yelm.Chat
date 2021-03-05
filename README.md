@@ -21,3 +21,9 @@ Add Yelm.Chat in view - SwiftUI
 ```swift
 @ObservedObject var chat : ChatIO = YelmChat
 ```
+
+All messages automate are in array  
+
+```swift
+self.chat.chat.messages 
+```

@@ -16,3 +16,8 @@ Start Chat.Core - register with platform from Yelm.Server wiki and put user_id
       }
     }
 ```
+Add Yelm.Chat in view - SwiftUI
+
+```swift
+@ObservedObject var chat : ChatIO = YelmChat
+```

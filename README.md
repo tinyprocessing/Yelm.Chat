@@ -27,3 +27,9 @@ All messages automate are in array
 ```swift
 self.chat.chat.messages 
 ```
+
+Get new maeesages - you need to collect messages when come back to app from notification
+
+```swift
+YelmChat.core.get()
+```

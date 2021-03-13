@@ -171,6 +171,8 @@ public class Core: ObservableObject, Identifiable {
                     }
                 }
                 
+                print(YelmChat.chat.messages)
+                
                 
             }else{
                 if (YelmChat.settings.debug && YelmChat.settings.internet()){
@@ -209,7 +211,7 @@ public class Core: ObservableObject, Identifiable {
         self.socket = self.manager!.defaultSocket
         
         self.socket.on(clientEvent: .connect) {data, ack in
-            print("connected")
+//            print("connected")
             DispatchQueue.main.async {
                 YelmChat.objectWillChange.send()
                 self.socket_state = true
@@ -340,7 +342,7 @@ public class Core: ObservableObject, Identifiable {
         }
         
         self.socket.on(clientEvent: .error) { (data, ack) in
-            print("error_socket")
+//            print("error_socket")
             
             DispatchQueue.main.async {
                 YelmChat.objectWillChange.send()
@@ -386,7 +388,7 @@ public class Core: ObservableObject, Identifiable {
         }
         
         self.socket.on(clientEvent: .disconnect) { (data, ack) in
-            print("dis_connected")
+//            print("dis_connected")
         }
         
         self.socket.connect()
